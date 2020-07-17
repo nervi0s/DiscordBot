@@ -1,11 +1,14 @@
 require('dotenv').config();
+require('./connection.js');
 
-const Usuario = require('./libs/clase_Usuario.js');
-const utils = require('./utils/utils.js')
+//const Usuario = require('./libs/clase_Usuario.js');
+const utils = require('./utils/utils.js');
+const { findMemberByID } = require('./utils/crud/findMemberByID');
+const { createNewMember } = require('./utils/crud/createNewMember.js');
 const Discord = require('discord.js');
 
 
-let arrayWithMembersFileNames = [];
+
 
 const client = new Discord.Client({ "presence": { "status": "online" } });
 
@@ -18,15 +21,23 @@ client.on('ready', () => {
 
 client.on('guildMemberAdd', async function (userJoinedinServer) { //Control de entrada de usuarios en el server
 
-    arrayWithMembersFileNames = await utils.readDir("../data/members");
-
-    if (await utils.isOldMember(arrayWithMembersFileNames, userJoinedinServer.id) == true) {
+    if (await findMemberByID(userJoinedinServer.id)) {
         userJoinedinServer.send(":robot: Bienvenid@ nuevamente al servidor. Me alegro de que hayas vuelto :grin:");
     } else {
-        let usuarioNuevo = new Usuario(userJoinedinServer.user.id, userJoinedinServer.user.tag, userJoinedinServer.guild.name, userJoinedinServer.joinedAt)
+        let usuarioNuevo = {
+            "userID": userJoinedinServer.user.id,
+            "uname": userJoinedinServer.user.tag,
+            "server": userJoinedinServer.guild.name,
+            "date": userJoinedinServer.joinedAt,
+            "welcomestatus": true
+        }
+        //console.log(usuarioNuevo)
+        await createNewMember(usuarioNuevo);
+
+        //let usuarioNuevo = new Usuario(userJoinedinServer.user.id, userJoinedinServer.user.tag, userJoinedinServer.guild.name, userJoinedinServer.joinedAt)
         userJoinedinServer.send(":robot: Bienvenid@ al servidor, soy HippoBot.");
-        usuarioNuevo.setWelcomeStatus("true");
-        await utils.writeData(`../data/members/member_${userJoinedinServer.guild.name}_${userJoinedinServer.user.id}.json`, JSON.stringify(usuarioNuevo));
+        //usuarioNuevo.setWelcomeStatus("true");
+        //await utils.writeData(`../data/members/member_${userJoinedinServer.guild.name}_${userJoinedinServer.user.id}.json`, JSON.stringify(usuarioNuevo));
     }
 
 });
