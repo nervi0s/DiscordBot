@@ -1,13 +1,17 @@
 require('../../connection.js');
 const Member = require('../../libs/models/ServerMebers.js');
 
+
 async function createNewMember(objMember) {
     //console.log(objMember)
     let member = new Member({
         "userID": objMember.userID,
         "username": objMember.uname,
-        "serverName": objMember.server,
-        "joinedAt": objMember.date,
+        "servers": {
+            "serverID": objMember.servers.serverID,
+            "serverName": objMember.servers.server,
+            "joinedAt": objMember.servers.date,
+        },
         "welcomeStatus": objMember.welcomestatus
     });
 

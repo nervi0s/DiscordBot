@@ -2,17 +2,84 @@ require('dotenv').config();
 require('./connection.js');
 
 const utils = require('./utils/utils.js');
-const { findMemberByID } = require('./utils/crud/findMemberByID');
-const { createNewMember } = require('./utils/crud/createNewMember.js');
+const { createNewMember } = require('./utils/crud/createNewMembers.js');
+const { findMemberByID, isInOtherServer } = require('./utils/crud/findMembers.js');
+const { updateMemberName, updateMemberServer, checkIfSereverNameChanged } = require('./utils/crud/updateMember.js');
+
 const Discord = require('discord.js');
 
-const client = new Discord.Client({ "presence": { "status": "online" } });
+const client = new Discord.Client({ "presence": { "status": "online", "activity": { "name": "🍉 Code 🍉", type: "PLAYING" } } });
 
 client.login(process.env.BOT_TOKEN);
 
-client.on('ready', () => {
+client.on('ready', async () => {
+
+    let serversWithBot = [];
+
     console.log(`Bot logged in as ${client.user.tag}!`);
-    console.log(client.readyAt)
+    console.log(client.readyAt);
+
+    //Show servers names where Bot is logged.
+    client.guilds.cache.forEach(function (servidor) {
+        serversWithBot.push({ "name": servidor.name, "id": servidor.id })
+    });
+    console.log(serversWithBot);
+
+    //Check if a sever has changed name.
+    for (let server of serversWithBot) {
+        await checkIfSereverNameChanged(server.id, server.name)
+    }
+
+    //Save current data of users present on the servers at the time that Bot start.
+    let userData;
+
+    for (let servidor of client.guilds.cache) {
+
+        for (let miembro of servidor[1].members.cache) {
+
+            console.log(miembro[1].user.id);
+
+            let isOldMember = await findMemberByID(miembro[1].user.id);
+            //console.log(isOldMember);
+            if (isOldMember) { // Si ya tenemos registrado a este usuario en la DB
+
+                if (!isOldMember.username.includes(miembro[1].user.tag)) { // y se ha cambiado de nick, añadimos su nuevo nick.
+                    await updateMemberName(miembro[1].user.id, miembro[1].user.tag);
+                }
+
+                if (isInOtherServer(isOldMember.servers, miembro[1].guild.id)) { // Si existe el usuario pero está en un server diferente
+
+                    let docServer = {
+                        "serverID": miembro[1].guild.id,
+                        "serverName": miembro[1].guild.name,
+                        "joinedAt": miembro[1].joinedAt
+                    }
+
+                    await updateMemberServer(isOldMember.userID, docServer) // entonces añadimos ese server.
+                }
+
+
+
+            } else { // Si no tenemos a este usuruario, lo añadimos a la DB.
+                userData = {
+                    "userID": miembro[1].user.id,
+                    "uname": miembro[1].user.tag,
+                    "servers": {
+                        "serverID": miembro[1].guild.id,
+                        "server": miembro[1].guild.name,
+                        "date": miembro[1].joinedAt
+                    }
+                }
+                //console.log(userData);
+                await createNewMember(userData);
+            }
+        }
+
+    }
+    /* client.guilds.cache.forEach(async (servidor) => {
+        // Async - await no funciona bien en los forEach, por eso se usó arriba un for normal para
+        // precorrer los mapas
+    }); */
 });
 
 client.on('guildMemberAdd', async function (userJoinedinServer) { //Control de entrada de usuarios en el server
@@ -39,6 +106,9 @@ client.on('guildMemberAdd', async function (userJoinedinServer) { //Control de e
 }) */
 
 client.on('message', async function (msg) {
+    /* console.log(client.guilds.cache.get("687660036520017936").members.cache.forEach((elemento)=>{
+        console.log(elemento.user.username)
+    })); */
 
     if (msg.content == "kk" && msg.channel.type != "dm") { //[toDo]hacer archivos con los mensajes elimninados
         msg.delete();
