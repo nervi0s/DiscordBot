@@ -2,8 +2,8 @@ require('dotenv').config();
 require('./connection.js');
 
 const utils = require('./utils/utils.js');
-const { createNewMember } = require('./utils/crud/createNewMembers.js');
-const { findMemberByID, isInOtherServer } = require('./utils/crud/findMembers.js');
+const { createNewMember } = require('./utils/crud/createNewMember.js');
+const { findMemberByID, isInOtherServer } = require('./utils/crud/findMember.js');
 const { updateMemberName, updateMemberServer, checkIfSereverNameChanged } = require('./utils/crud/updateMember.js');
 
 const Discord = require('discord.js');
@@ -47,20 +47,17 @@ client.on('ready', async () => {
                     await updateMemberName(miembro[1].user.id, miembro[1].user.tag);
                 }
 
-                if (isInOtherServer(isOldMember.servers, miembro[1].guild.id)) { // Si existe el usuario pero está en un server diferente
-
-                    let docServer = {
+                if (isInOtherServer(isOldMember.servers, miembro[1].guild.id)) { // si está en un server diferente.
+                    let infoServer = {
                         "serverID": miembro[1].guild.id,
                         "serverName": miembro[1].guild.name,
                         "joinedAt": miembro[1].joinedAt
                     }
-
-                    await updateMemberServer(isOldMember.userID, docServer) // entonces añadimos ese server.
+                    await updateMemberServer(isOldMember.userID, infoServer) // entonces añadimos ese server.
                 }
 
-
-
             } else { // Si no tenemos a este usuruario, lo añadimos a la DB.
+
                 userData = {
                     "userID": miembro[1].user.id,
                     "uname": miembro[1].user.tag,
@@ -70,19 +67,17 @@ client.on('ready', async () => {
                         "date": miembro[1].joinedAt
                     }
                 }
-                //console.log(userData);
                 await createNewMember(userData);
             }
         }
-
     }
     /* client.guilds.cache.forEach(async (servidor) => {
         // Async - await no funciona bien en los forEach, por eso se usó arriba un for normal para
-        // precorrer los mapas
+        // recorrer los mapas
     }); */
 });
 
-client.on('guildMemberAdd', async function (userJoinedinServer) { //Control de entrada de usuarios en el server
+client.on('guildMemberAdd', async function (userJoinedinServer) { // Users acces control at the server
 
     if (await findMemberByID(userJoinedinServer.id)) {
         userJoinedinServer.send(":robot: Bienvenid@ nuevamente al servidor. Me alegro de que hayas vuelto :grin:");
@@ -90,8 +85,11 @@ client.on('guildMemberAdd', async function (userJoinedinServer) { //Control de e
         let usuarioNuevo = {
             "userID": userJoinedinServer.user.id,
             "uname": userJoinedinServer.user.tag,
-            "server": userJoinedinServer.guild.name,
-            "date": userJoinedinServer.joinedAt,
+            "servers": {
+                "serverID": userJoinedinServer.guild.id,
+                "server": userJoinedinServer.guild.name,
+                "date": userJoinedinServer.joinedAt
+            },
             "welcomestatus": true
         }
         //console.log(usuarioNuevo)

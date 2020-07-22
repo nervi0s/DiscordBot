@@ -1,26 +1,29 @@
 require('../../connection.js');
 const Member = require('../../libs/models/ServerMebers.js');
-const { findOne } = require('../../libs/models/ServerMebers.js');
 
 
-async function updateMemberName(id, newName) {
-    let arrayDocs = await Member.find({ "userID": id });
-    console.log(arrayDocs, `Ha cambiado de nombre a: ${newName}`);
-
-    arrayDocs.forEach(async (documento) => {
-        documento.username.push(newName);
+async function updateMemberName(userID, newName) {
+    let documento = await Member.findOne({ "userID": userID });
+    console.log(documento, `Ha cambiado de nombre a: ${newName}`);
+    documento.username.push(newName);
+    try {
         await documento.save();
-    });
+        console.log(documento)
+    } catch (err) {
+        console.log(err);
+    }
 }
 
-async function updateMemberServer(userID, docServer) {
-    let arrayDocs = await Member.find({ "userID": userID });
-    console.log(arrayDocs, `Se ha añadido un servidor al usuario, nombre del server: ${docServer.serverName}`);
-
-    arrayDocs.forEach(async (documento) => {
-        documento.servers.push(docServer);
+async function updateMemberServer(userID, infoServer) {
+    let documento = await Member.findOne({ "userID": userID });
+    console.log(documento, `Se ha añadido un servidor al usuario, nombre del server: ${infoServer.serverName}`);
+    documento.servers.push(infoServer);
+    try {
         await documento.save();
-    });
+        console.log(documento)
+    } catch (err) {
+        console.log(err);
+    }
 }
 
 async function checkIfSereverNameChanged(idSever, possibleNewServerName) {
@@ -39,7 +42,8 @@ async function checkIfSereverNameChanged(idSever, possibleNewServerName) {
 
                     try {
                         await docu.save();
-                        console.log(`Se ha añadido el nuevo nombre a la DB, miembro: ${docu.username} actualizado`)
+                        //console.log(docu)
+                        console.log(`Se ha añadido el nuevo nombre a la DB, miembro: ${docu.username[docu.username.length - 1]} actualizado`)
                     } catch (err) {
                         console.log(err);
                     }
