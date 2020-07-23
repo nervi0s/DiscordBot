@@ -6,9 +6,10 @@ const { findMemberByID } = require('./utils/crud/findMember.js');
 const { createNewMember } = require('./utils/crud/createNewMember.js');
 const { checkIfSereverNameChanged } = require('./utils/crud/updateMember.js');
 const { checkAndSaveMembers } = require('./libs/botFunctionalities/saveMemberToDB.js');
+const { checkIsMsgContainAnInsult } = require('./libs/botFunctionalities/checkInsults.js');
 
 const Discord = require('discord.js');
-const { checkIsMsgContainAnInsult } = require('./libs/botFunctionalities/checkInsults.js');
+const { saveMessageInDB } = require('./utils/crud/logMessageInDB.js');
 
 const client = new Discord.Client({ "presence": { "status": "online", "activity": { "name": "🍉 Code 🍉", type: "PLAYING" } } });
 
@@ -56,21 +57,16 @@ client.on('guildMemberAdd', async function (userJoinedinServer) { // Users acces
 
 });
 
-/* client.on('messageDelete',function (msg){
-    console.log(msg.content)
-}) */
-
 client.on('message', async function (msg) {
+    //console.log(msg)
+
     /* console.log(client.guilds.cache.get("687660036520017936").members.cache.forEach((elemento)=>{
         console.log(elemento.user.username)
     })); */
-    await checkIsMsgContainAnInsult(msg)
-    if (msg.content == "kk" && msg.channel.type != "dm") { //[toDo]hacer archivos con los mensajes elimninados
+    if (await checkIsMsgContainAnInsult(msg) && msg.channel.type != "dm") {
         msg.delete();
-        console.log("Se ha eliminado un mensaje")
+        console.log("Se ha eliminado un mensaje que contenía un insulto");
     }
-
-    //console.log(msg)
 
     if (msg.channel.type == "dm" && msg.content.toLocaleLowerCase().includes("!pokemon") == false) {
         try {
@@ -106,3 +102,7 @@ client.on('message', async function (msg) {
     }
 
 });
+
+client.on('messageDelete', async function (msg) {
+    await saveMessageInDB(msg);
+})
