@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const Message = new Schema({
+const DmMessage = new Schema({
     username: String,
     userID: String,
-    serverName: String,
-    serverID: String,
     content: String,
     createdAt: Date,
 });
 
-module.exports = mongoose.model("deletedMessages", Message);
+module.exports = mongoose.model("privateMsgToBot", DmMessage);
