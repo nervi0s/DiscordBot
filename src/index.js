@@ -11,7 +11,7 @@ const { checkAndSaveMembers } = require('./libs/botFunctionalities/saveMemberToD
 const { checkIsMsgContainAnInsult } = require('./libs/botFunctionalities/checkInsults.js');
 
 const Discord = require('discord.js');
-
+const ID_BOT = "729735751755104377";
 const client = new Discord.Client({ "presence": { "status": "online", "activity": { "name": "🍉 Code 🍉", type: "PLAYING" } } });
 
 client.login(process.env.BOT_TOKEN);
@@ -60,22 +60,24 @@ client.on('guildMemberAdd', async function (userJoinedinServer) { // Users acces
 
 client.on('message', async function (msg) {
     //console.log(msg)
-
+    if (msg.author.id == ID_BOT) return; //Ignore bot self messages
     /* console.log(client.guilds.cache.get("687660036520017936").members.cache.forEach((elemento)=>{
         console.log(elemento.user.username)
     })); */
-    if (await checkIsMsgContainAnInsult(msg) && msg.channel.type != "dm") {
-        await msg.delete();
-        console.log("Se ha eliminado un mensaje que contenía un insulto");
+    if (msg.channel.type != "dm") {
+        if (await checkIsMsgContainAnInsult(msg)) {
+            await msg.delete();
+            console.log("Se ha eliminado un mensaje que contenía un insulto");
+        }
     }
 
-    if (msg.channel.type == "dm" && msg.content.toLocaleLowerCase().includes("!pokemon") == false) {
+    if (msg.channel.type == "dm" && msg.content.toLocaleLowerCase().startsWith("!pokemon") == false) {
         try {
             await msg.author.send("Hola! estas intentando hablar con un Bot! :robot: bip bop bop bip");
             await saveDMtoDB(msg);
         }
         catch (err) {
-            //console.log(err); //Aquí da un error del tipo httpStatus: 400 (De momento es ignorado porque funciona bien)
+            //console.log(err); //Aquí da un error del tipo httpStatus: 400 (Parece que es algo de discord.js )(De momento es ignorado porque funciona bien)
         }
     }
 
@@ -106,5 +108,7 @@ client.on('message', async function (msg) {
 });
 
 client.on('messageDelete', async function (msg) {
-    await saveMessageInDB(msg);
+    if (msg.channel.type != "dm") {
+        await saveMessageInDB(msg);
+    }
 })
