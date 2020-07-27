@@ -8,6 +8,7 @@ const { saveMessageInDB } = require('./utils/crud/logMessageInDB.js');
 const { createNewMember } = require('./utils/crud/createNewMember.js');
 const { checkIfSereverNameChanged } = require('./utils/crud/updateMember.js');
 const { checkAndSaveMembers } = require('./libs/botFunctionalities/saveMemberToDB.js');
+const { isDeletedByBot } = require('./libs/botFunctionalities/checkIfBotDeletedMsg.js');
 const { checkIsMsgContainAnInsult } = require('./libs/botFunctionalities/checkInsults.js');
 
 const Discord = require('discord.js');
@@ -61,11 +62,10 @@ client.on('guildMemberAdd', async function (userJoinedinServer) { // Users acces
 client.on('message', async function (msg) {
     //console.log(msg)
     if (msg.author.id == ID_BOT) return; //Ignore bot self messages
-    /* console.log(client.guilds.cache.get("687660036520017936").members.cache.forEach((elemento)=>{
-        console.log(elemento.user.username)
-    })); */
+
     if (msg.channel.type != "dm") {
         if (await checkIsMsgContainAnInsult(msg)) {
+            await msg.react('⛔');
             await msg.delete();
             console.log("Se ha eliminado un mensaje que contenía un insulto");
         }
@@ -82,8 +82,7 @@ client.on('message', async function (msg) {
     }
 
     if (msg.content.toLocaleLowerCase().startsWith("!pokemon") == true) {
-        /* let usuario = msg.author;
-        usuario.send("Así que te gustan los pokemons eh"); */
+
         let splitedMessageBySpaces = msg.content.split(" ");
         console.log(splitedMessageBySpaces);
         let numeroPoke = splitedMessageBySpaces[1];
@@ -109,6 +108,10 @@ client.on('message', async function (msg) {
 
 client.on('messageDelete', async function (msg) {
     if (msg.channel.type != "dm") {
-        await saveMessageInDB(msg);
+        if (isDeletedByBot(msg)) {
+            await saveMessageInDB(msg, true);
+        } else {
+            await saveMessageInDB(msg, false);
+        }
     }
-})
+});

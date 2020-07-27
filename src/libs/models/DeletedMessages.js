@@ -8,6 +8,16 @@ const Message = new Schema({
     serverID: String,
     content: String,
     createdAt: Date,
+    deletedBy: {
+        bot: {
+            type: Boolean,
+            default: false
+        },
+        authorOrAdmin: {
+            type: Boolean,
+            default: false
+        }
+    }
 });
 
 module.exports = mongoose.model("deletedMessages", Message);
