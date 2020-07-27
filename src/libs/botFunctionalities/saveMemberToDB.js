@@ -25,7 +25,7 @@ async function checkAndSaveMembers(client) {
                         "serverName": miembro[1].guild.name,
                         "joinedAt": miembro[1].joinedAt
                     };
-                    await updateMemberServer(isOldMember.userID, infoServer); // entonces añadimos ese server los datos del usuario.
+                    await updateMemberServer(isOldMember.userID, infoServer); // entonces añadimos ese server a los datos del usuario.
                 }
 
             }
