@@ -13,12 +13,20 @@ const { checkIsMsgContainAnInsult } = require('./libs/botFunctionalities/checkIn
 
 const Discord = require('discord.js');
 const ID_BOT = "729735751755104377";
-const client = new Discord.Client({ "presence": { "status": "online", "activity": { "name": "🍉 Code 🍉", type: "PLAYING" } } });
+
+const client = new Discord.Client({
+    "presence": {
+        status: "online",
+        activity: {
+            name: "🍉 Code 🍉",
+            type: "PLAYING"
+        }
+    }
+});
 
 client.login(process.env.BOT_TOKEN);
 
 client.on('ready', async () => {
-
     let serversWithBot = [];
 
     console.log(`Bot logged in as ${client.user.tag}!`);
